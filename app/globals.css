@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+/* @plugin "tailwindcss-animate"; */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-heading: var(--font-outfit), ui-sans-serif, system-ui;
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-in: animate-in 0.3s ease-in-out;
+  --animate-out: animate-out 0.3s ease-in-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes animate-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to sure everything still looks correct.
+*/
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-blue-100, currentColor);
+    /* Soft blue borders by default */
+  }
+}
+
+@utility glass {
+  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm;
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500;
+}
+
+/* Base Variables - Purple Theme */
+:root {
+  --background: oklch(0.99 0.005 280);
+  /* Extremely light purple/white */
+  --foreground: oklch(0.15 0.05 280);
+  /* Deep purple-ish black */
+
+  --card: oklch(1 0 0);
+  /* Pure white cards */
+  --card-foreground: oklch(0.15 0.05 280);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.05 280);
+
+  --primary: oklch(0.55 0.25 290);
+  /* Purple Primary (#8B5CF6 equivalent) */
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.96 0.01 280);
+  /* Light purple wash */
+  --secondary-foreground: oklch(0.25 0.05 280);
+
+  --muted: oklch(0.96 0.01 280);
+  --muted-foreground: oklch(0.45 0.05 280);
+
+  --accent: oklch(0.96 0.01 280);
+  --accent-foreground: oklch(0.25 0.05 280);
+
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.93 0.01 280);
+  /* Soft purple border */
+  --input: oklch(0.93 0.01 280);
+  --ring: oklch(0.55 0.25 290);
+
+  --radius: 1rem;
+}
+
+/* Dark Mode Variables - Deep Purple Theme */
+.dark {
+  --background: oklch(0.12 0.01 280);
+  /* Deep charcoal #121212 */
+  --foreground: oklch(0.95 0.01 280);
+  /* Light slate */
+
+  --card: oklch(0.15 0.01 280);
+  /* Elevated charcoal #1E1E1E */
+  --card-foreground: oklch(0.95 0.01 280);
+
+  --popover: oklch(0.15 0.01 280);
+  --popover-foreground: oklch(0.95 0.01 280);
+
+  --primary: oklch(0.65 0.20 290);
+  /* Lighter purple for dark mode */
+  --primary-foreground: oklch(0.15 0.01 280);
+
+  --secondary: oklch(0.20 0.01 280);
+  /* Dark gray */
+  --secondary-foreground: oklch(0.95 0.01 280);
+
+  --muted: oklch(0.20 0.01 280);
+  --muted-foreground: oklch(0.70 0.01 280);
+
+  --accent: oklch(0.20 0.01 280);
+  --accent-foreground: oklch(0.95 0.01 280);
+
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.95 0.01 280);
+
+  --border: oklch(0.25 0.01 280);
+  /* Dark gray borders */
+  --input: oklch(0.25 0.01 280);
+  --ring: oklch(0.65 0.20 290);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-purple-100 selection:text-purple-900;
+  }
+
+  .dark body {
+    @apply selection:bg-purple-900/30 selection:text-purple-200;
+  }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.2);
+}
+
+/* Tactile Button Effects */
+.btn-tactile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-tactile:hover {
+  transform: scale(1.05);
+}
+
+.btn-tactile:active {
+  transform: scale(0.95);
+}
+
+/* Pulse Animation for Live Status */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  }
+
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+  }
+}
+
+.pulse-live {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
