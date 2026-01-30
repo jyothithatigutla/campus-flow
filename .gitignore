@@ -1,14 +1,7 @@
-# See https://help.thub.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/pluns
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
@@ -20,20 +13,22 @@
 # production
 /build
 
+# project-specific logs
+dev_log.txt
+dev_log_2.txt
+dev_log_final.txt
+faculty_update.log
+*.log
+
+# accidental powershell scripts
+replace-colors.ps1
+replace-to-purple.ps1
+apply-gradients.ps1
+
 # misc
 .DS_Store
 *.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
 .env*
-
-# vercel
 .vercel
 
 # typescript
