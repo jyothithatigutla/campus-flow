@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { LeaveRequestDialog } from "@/components/faculty/leave-request-dialog";
+import { AddFacultyDialog } from "@/components/faculty/add-faculty-dialog";
 
 export default function AdminStaffDirectory() {
     const router = useRouter();
@@ -67,6 +68,10 @@ export default function AdminStaffDirectory() {
         ));
     };
 
+    const handleAddFaculty = (newFaculty: any) => {
+        setStaffRecords(prev => [newFaculty, ...prev]);
+    };
+
     return (
         <DashboardLayout>
             <div className="max-w-[1700px] mx-auto py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 font-sans">
@@ -90,9 +95,14 @@ export default function AdminStaffDirectory() {
                                 Request Leave
                             </Button>
                         </LeaveRequestDialog>
-                        <Button className="bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl h-12 px-8">
-                            Add New Faculty
-                        </Button>
+                        <AddFacultyDialog
+                            onAdd={handleAddFaculty}
+                            existingIds={staffRecords.map(s => s.id)}
+                        >
+                            <Button className="bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl h-12 px-8">
+                                Add New Faculty
+                            </Button>
+                        </AddFacultyDialog>
                     </div>
                 </div>
 

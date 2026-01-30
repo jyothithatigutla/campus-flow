@@ -9,20 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshingQRScanner } from "@/components/faculty/attendance-scanner";
 import { AttendanceChart, PerformanceChart, GradeDistributionChart } from "@/components/faculty/dashboard-analytics";
+import { AddClassDialog } from "@/components/faculty/add-class-dialog";
+import { useRouter } from "next/navigation";
 import {
-    Users,
-    UserCheck,
-    Clock,
     AlertCircle,
     ArrowUpRight,
-    ShieldCheck,
-    TrendingUp,
-    FileText,
-    Settings,
+    BarChart3,
     Bell,
-    QrCode,
+    Calendar as LucideCalendar,
+    Clock,
+    FileText,
+    GraduationCap,
+    Inbox,
     MapPin,
-    Inbox
+    Plus,
+    QrCode,
+    Settings,
+    ShieldCheck,
+    Table,
+    TrendingUp,
+    UserCheck,
+    Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -38,7 +45,9 @@ import { CountUp } from "@/components/ui/count-up";
 
 export default function UnifiedFacultyDashboard() {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isAddClassOpen, setIsAddClassOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
     const currentUser = {
         id: "USR-004",
         name: "Dr. S. Jumlesha",
@@ -82,65 +91,101 @@ export default function UnifiedFacultyDashboard() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-[1700px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 font-sans p-6">
+            <div className="max-w-[1700px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 font-sans p-4">
 
                 {/* Dashboard Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                     {/* Left Side: 8 Columns */}
-                    <div className="lg:col-span-8 space-y-12">
+                    <div className="lg:col-span-8 space-y-8">
 
                         {/* Hero Row: My Classes & Attendance */}
-                        <div className="grid grid-cols-1 md:grid-cols-10 gap-8">
-                            {/* My Classes Today */}
-                            <Card className="md:col-span-6 bg-[#0F172A] text-white rounded-[40px] p-10 relative overflow-hidden group shadow-2xl border-0">
-                                <div className="relative z-10 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
+                            {/* My Classes Today - Premium Redesign */}
+                            <Card className="md:col-span-4 bg-gradient-to-br from-[#4f46e5] via-[#7c3aed] to-[#2563eb] text-white rounded-[32px] p-8 relative overflow-hidden group shadow-[0_20px_50px_rgba(79,70,229,0.3)] border-0 flex flex-col justify-between h-[400px]">
+                                <div className="relative z-10 h-full flex flex-col justify-between">
                                     <div className="space-y-1">
-                                        <h3 className="text-2xl font-black tracking-tight italic">My Classes Today</h3>
-                                        <p className="text-slate-400 font-bold text-sm tracking-widest uppercase">4 Active Courses</p>
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <Badge className="bg-white/20 text-white border-none font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">
+                                                    Active Sessions
+                                                </Badge>
+                                                <h3 className="text-2xl font-black tracking-tight italic">Today's Schedule</h3>
+                                            </div>
+                                            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                                                <LucideCalendar className="w-6 h-6" />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="text-8xl font-black italic tracking-tighter">4</div>
-                                    <div className="flex gap-4">
-                                        <Button className="bg-[#0047AB] hover:bg-[#003087] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl px-8 h-12 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
-                                            ADD
+
+                                    {/* Centered Massive Counter */}
+                                    <div className="flex flex-col items-center justify-center py-4">
+                                        <div className="relative">
+                                            <span className="text-[120px] font-black leading-none tracking-tighter drop-shadow-2xl">4</span>
+                                            <div className="absolute -right-12 bottom-4 rotate-90">
+                                                <span className="text-xs font-black tracking-[0.3em] uppercase opacity-60">Lectures</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm font-bold opacity-80 mt-2 tracking-wide text-center">
+                                            You have <span className="underline decoration-2 underline-offset-4">4 key sessions</span> lined up for today.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                        <Button
+                                            onClick={() => setIsAddClassOpen(true)}
+                                            className="bg-white text-[#4f46e5] hover:bg-white/90 font-black text-[10px] uppercase tracking-widest rounded-xl h-12 shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+                                        >
+                                            ADD NEW
                                         </Button>
-                                        <Button variant="outline" className="border-2 border-slate-700 text-slate-300 hover:bg-slate-800 font-black text-[10px] uppercase tracking-widest rounded-2xl px-8 h-12 active:scale-95 transition-all">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => router.push('/faculty/timetable')}
+                                            className="bg-white/10 border-white/30 text-white hover:bg-white/20 font-black text-[10px] uppercase tracking-widest rounded-xl h-12 backdrop-blur-md active:scale-95 transition-all"
+                                        >
                                             SEE TABLE
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-700" />
+
+                                {/* Background Watermark Icon */}
+                                <div className="absolute -right-8 bottom-0 opacity-10 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-700 pointer-events-none">
+                                    <Users className="w-64 h-64" />
+                                </div>
+                                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                             </Card>
 
-
-                            {/* Attendance Chart (Replaces old static card) */}
-                            <div className="md:col-span-4 h-full">
+                            {/* Attendance Chart */}
+                            <div className="md:col-span-6 h-[400px]">
                                 <AttendanceChart />
                             </div>
                         </div>
 
-                        {/* Performance & Grades Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[400px]">
+                        {/* Performance & Grades Row - Enlarged */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 min-h-[550px]">
                             <PerformanceChart />
                             <GradeDistributionChart />
                         </div>
 
                         {/* Instant Attendance (QR Scanner) */}
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-emerald-600 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]" />
-                                <h3 className="text-2xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Instant Attendance</h3>
+                                <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                                <h3 className="text-xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Instant Attendance</h3>
                             </div>
-                            <Card className="bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20 border-0 rounded-[40px] p-10 shadow-2xl relative overflow-hidden group">
-                                <div className="relative z-10 space-y-6">
+                            <Card className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:shadow-none relative overflow-hidden group">
+                                <div className="relative z-10 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">QR Scanner</p>
-                                            <h4 className="text-2xl font-black tracking-tight">Scan Student QR</h4>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 font-bold">Auto-refresh every 10 seconds</p>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">QR Scanner</p>
+                                            </div>
+                                            <h4 className="text-xl font-black tracking-tight text-slate-800 dark:text-slate-100">Scan Student QR</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold italic">Refreshing active session...</p>
                                         </div>
-                                        <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                                            <QrCode className="w-10 h-10" />
+                                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform">
+                                            <QrCode className="w-7 h-7" />
                                         </div>
                                     </div>
                                     <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
@@ -165,26 +210,26 @@ export default function UnifiedFacultyDashboard() {
                         </div>
 
                         {/* Quick Links / Schedule */}
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-[#0047AB] rounded-full" />
-                                <h3 className="text-2xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Quick Links</h3>
+                                <h3 className="text-xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Quick Links</h3>
                             </div>
-                            <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-0 rounded-[40px] p-8 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer group">
-                                <div className="flex items-center gap-8">
-                                    <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                            <FileText className="w-6 h-6" />
+                            <Card className="bg-slate-50/50 dark:bg-slate-800/50 border-0 rounded-[32px] p-6 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer group">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                        <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                            <FileText className="w-5 h-5" />
                                         </div>
                                     </div>
                                     <div className="flex-1">
-                                        <div className="flex items-baseline gap-2 mb-1">
-                                            <span className="text-xl font-black italic text-slate-900 dark:text-white">10:30</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">AM</span>
+                                        <div className="flex items-baseline gap-2 mb-0.5">
+                                            <span className="text-lg font-black italic text-slate-900 dark:text-white">10:30</span>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">AM</span>
                                         </div>
-                                        <h4 className="text-2xl font-black tracking-tight mb-1 text-slate-900 dark:text-white">Operating Systems</h4>
-                                        <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Hall B</span>
+                                        <h4 className="text-xl font-black tracking-tight mb-0.5 text-slate-900 dark:text-white">Operating Systems</h4>
+                                        <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> Hall B</span>
                                             <span className="w-1 h-1 rounded-full bg-slate-300" />
                                             <span>Section A</span>
                                         </div>
@@ -200,16 +245,17 @@ export default function UnifiedFacultyDashboard() {
                     </div>
 
                     {/* Right Side: 4 Columns (Pending Hub) */}
-                    <div className="lg:col-span-4 space-y-8">
+                    <div className="lg:col-span-4 space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-6 bg-orange-600 rounded-full shadow-[0_0_10px_rgba(234,88,12,0.3)]" />
-                            <h3 className="text-2xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Pending Hub</h3>
+                            <div className="w-1.5 h-6 bg-[#6366f1] rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+                            <h3 className="text-xl font-black text-[#1E293B] dark:text-white tracking-tight italic">Pending Hub</h3>
                         </div>
-                        <Card className="border-0 bg-white dark:bg-slate-900/80 p-8 rounded-[40px] shadow-2xl space-y-8 border border-slate-100 dark:border-slate-800">
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Awaiting Approval</p>
-                                <h4 className="text-2xl font-black tracking-tight">Recent Requests</h4>
+                        <Card className="border-0 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:shadow-none space-y-6 relative overflow-hidden">
+                            <div className="space-y-1 relative z-10">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Awaiting Approval</p>
+                                <h4 className="text-xl font-black tracking-tight text-slate-800 dark:text-slate-100">Recent Requests</h4>
                             </div>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-[40px] -z-0" />
 
                             <div className="space-y-4">
                                 <AnimatePresence initial={false} mode="popLayout">
@@ -219,7 +265,7 @@ export default function UnifiedFacultyDashboard() {
                                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.9, x: 50 }}
-                                            className="p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-[32px] border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all group"
+                                            className="p-5 bg-white dark:bg-slate-800/40 rounded-[24px] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all group"
                                         >
                                             <div className="flex items-center justify-between mb-6">
                                                 <div className="flex items-center gap-4">
@@ -263,25 +309,26 @@ export default function UnifiedFacultyDashboard() {
                     </div>
                 </div>
             </div>
+            <AddClassDialog open={isAddClassOpen} onOpenChange={setIsAddClassOpen} />
         </DashboardLayout>
     );
 }
 
 function MinimalStat({ label, value, icon: Icon, growth }: any) {
     return (
-        <Card className="p-10 bg-white dark:bg-slate-900 rounded-[40px] shadow-xl border border-slate-50 dark:border-slate-800 hover:shadow-2xl transition-all group overflow-hidden relative">
-            <div className="relative z-10 space-y-6">
+        <Card className="p-6 bg-white dark:bg-slate-900 rounded-[32px] shadow-xl border border-slate-50 dark:border-slate-800 hover:shadow-2xl transition-all group overflow-hidden relative">
+            <div className="relative z-10 space-y-4">
                 <div className="flex justify-between items-start">
-                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                        <Icon className="w-6 h-6" />
+                    <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                        <Icon className="w-5 h-5" />
                     </div>
                     {growth && (
-                        <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[10px] px-3 py-1 rounded-full">{growth}</Badge>
+                        <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] px-2.5 py-0.5 rounded-full">{growth}</Badge>
                     )}
                 </div>
                 <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
-                    <h4 className="text-5xl font-black italic tracking-tighter transition-colors group-hover:text-blue-600">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+                    <h4 className="text-3xl font-black italic tracking-tighter transition-colors group-hover:text-blue-600">
                         <CountUp end={value} />
                     </h4>
                 </div>
