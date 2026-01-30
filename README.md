@@ -24,6 +24,7 @@
 *   **Role-Based Access Control (RBAC):** Strict separation of duties between Admin, Faculty, and Student roles using Supabase RLS.
 *   **Real-time Data:** Instant updates using Supabase subscriptions (e.g., for live attendance tracking).
 *   **Modern UI/UX:** Built with Tailwind CSS, Shadcn/UI, and Framer Motion for a premium, accessible, and responsive experience.
+*   **Interactive Visual Identity:** Features a high-fidelity **Liquid Mesh Gradient** background with organic oozing color blobs and a **Magnetic Globe Light** that tracks the user's cursor in real-time.
 
 ## 🛠️ Tech Stack
 
