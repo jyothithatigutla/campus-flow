@@ -35,7 +35,7 @@ export function WalletBalanceDisplay() {
             const result = await payFee("current", amountToPay);
             if (result && result.success) {
                 toast.success("Fee Paid Successfully!", { description: `New Balance: $${result.new_balance}` });
-                setBalance(result.new_balance);
+                setBalance(result.new_balance ?? balance);
             } else {
                 toast.error("Payment Failed", { description: result?.message || "Please try again." });
             }
@@ -52,7 +52,7 @@ export function WalletBalanceDisplay() {
 
             if (result && result.success) {
                 toast.success("Money Added!", { description: `$${amountToAdd} added to wallet.` });
-                setBalance(result.new_balance);
+                setBalance(result.new_balance ?? balance);
             } else {
                 toast.error("Top-up Failed", { description: result?.message || "Please try again." });
             }

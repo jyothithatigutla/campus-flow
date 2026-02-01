@@ -34,9 +34,13 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    let user = null;
+    try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        user = authUser;
+    } catch (e) {
+        console.error("[Middleware] Error fetching user:", e);
+    }
 
     const path = request.nextUrl.pathname;
 
