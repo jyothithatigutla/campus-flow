@@ -1,3 +1,23 @@
+-- Profiles Table (Unified User Info)
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  email TEXT UNIQUE,
+  role TEXT CHECK (role IN ('student', 'faculty', 'admin', 'principal', 'visitor')),
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Faculty Table
+CREATE TABLE IF NOT EXISTS public.faculty (
+  id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  employee_id TEXT UNIQUE,
+  department TEXT,
+  designation TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Events and Registrations
 CREATE TABLE IF NOT EXISTS public.events (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -37,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
 
 -- Students Table
 CREATE TABLE IF NOT EXISTS public.students (
-  id TEXT PRIMARY KEY,
+  id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   year TEXT NOT NULL,
   section TEXT NOT NULL,
@@ -70,12 +90,26 @@ CREATE TABLE IF NOT EXISTS public.timetable (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Attendance Table
+-- Attendance Sessions (Faculty starts these)
+CREATE TABLE IF NOT EXISTS public.attendance_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  faculty_id TEXT NOT NULL, -- UUID of faculty
+  timetable_id UUID REFERENCES public.timetable(id),
+  lat DECIMAL(10, 8) NOT NULL,
+  lon DECIMAL(11, 8) NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Attendance Table (Modified)
 CREATE TABLE IF NOT EXISTS public.attendance (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   student_id TEXT NOT NULL REFERENCES public.students(id),
   timetable_id UUID REFERENCES public.timetable(id),
-  date DATE NOT NULL,
+  session_id UUID REFERENCES public.attendance_sessions(id),
+  faculty_id TEXT,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
   status TEXT NOT NULL CHECK (status IN ('PRESENT', 'ABSENT', 'LATE')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(student_id, timetable_id, date)

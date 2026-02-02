@@ -187,3 +187,27 @@ export async function addMoney(amount: number) {
     revalidatePath('/student/dashboard');
     return { success: true, message: "Money Added Successfully", new_balance: newBalance };
 }
+
+export async function getRecentGrades(studentIdArg?: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // In demo mode or if no user, return empty or mock
+    if (!user) return [];
+
+    const studentId = user.id;
+
+    const { data: grades, error } = await supabase
+        .from('grades')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        console.error("Error fetching grades:", error);
+        return [];
+    }
+
+    return grades || [];
+}

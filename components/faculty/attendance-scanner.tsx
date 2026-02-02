@@ -3,19 +3,22 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Clock, Users, MapPin, Zap, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Clock, Users, MapPin, Zap, AlertTriangle, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { startAttendanceSession, exportAttendanceAction } from "@/app/actions/attendance";
 
 export function RefreshingQRScanner() {
     const [token, setToken] = useState<string>("");
+    const [sessionId, setSessionId] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState<number>(10);
     const [checkedInCount, setCheckedInCount] = useState<number>(0);
     const [latestCheckIn, setLatestCheckIn] = useState<string | null>(null);
     const [isVerified, setIsVerified] = useState(false);
     const [heatmapData, setHeatmapData] = useState<number[]>([]);
     const [mounted, setMounted] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     // Location State
     const [location, setLocation] = useState<{ lat: number, lng: number } | null>(null);
@@ -26,37 +29,50 @@ export function RefreshingQRScanner() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    setLocation({
+                    const loc = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
-                    });
+                    };
+                    setLocation(loc);
                     setLocationError(null);
+                    // Automatically start session when location is acquired
+                    handleStartSession(loc);
                 },
                 (error) => {
                     console.error("Location Error:", error);
                     setLocationError("Location access denied. Geo-fencing disabled.");
-                    // Fallback to College Coordinates if denied (for demo) or keep null
-                    // setLocation({ lat: 13.6288, lng: 79.4192 }); 
-                }
+                },
+                { enableHighAccuracy: true }
             );
         } else {
             setLocationError("Geolocation not supported");
         }
     }, []);
 
-    // Generate QR token - WITH GPS
+    const handleStartSession = async (loc: { lat: number, lng: number }) => {
+        const res = await startAttendanceSession(null, loc.lat, loc.lng);
+        if (res.success && res.sessionId) {
+            setSessionId(res.sessionId);
+            toast.success("Attendance Session Started", {
+                description: "Students can now scan within 100m of your location."
+            });
+        } else {
+            toast.error("Failed to start session: " + res.message);
+        }
+    };
+
+    // Generate QR token
     const generateToken = () => {
-        if (!location && !locationError) return; // Wait for location if checking
+        if (!sessionId) return;
 
         const payload = {
-            room: "MAIN-HALL-BLOCK-B",
-            facultyId: "FAC-001",
+            sid: sessionId,
             ts: Date.now(),
             salt: Math.random().toString(36).substring(7),
-            geo: location ? `${location.lat.toFixed(4)},${location.lng.toFixed(4)}` : "NO_GEO"
         };
-        const encoded = btoa(JSON.stringify(payload)).substring(0, 32);
-        setToken(`v2.secure.${encoded}`);
+        // Using a simpler encoding for the QR code value
+        const encoded = btoa(JSON.stringify(payload));
+        setToken(`campusflow://${encoded}`);
         setTimeLeft(10);
         if (heatmapData.length < 20) setHeatmapData(prev => [...prev, Math.random()]);
     };
@@ -69,10 +85,36 @@ export function RefreshingQRScanner() {
         });
     };
 
+    const handleExport = async () => {
+        if (!sessionId) return;
+        setIsExporting(true);
+        try {
+            const res = await exportAttendanceAction(sessionId);
+            if (res.success && res.data) {
+                const blob = new Blob([res.data], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download', `attendance_${sessionId}.csv`);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                toast.success("Attendance exported successfully!");
+            } else {
+                toast.error("Export failed: " + res.message);
+            }
+        } catch (err) {
+            toast.error("Export error occurred");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     // Initialize scanner & Timer
     useEffect(() => {
         setMounted(true);
-        generateToken(); // Initial token
+        if (sessionId) generateToken();
 
         const interval = setInterval(() => {
             setTimeLeft((prev) => {
@@ -84,8 +126,9 @@ export function RefreshingQRScanner() {
             });
         }, 1000);
 
+        // Simulation for UI feedback (Still useful to show something moving)
         const checkInInterval = setInterval(() => {
-            if (!isVerified && location && Math.random() > 0.6) {
+            if (!isVerified && sessionId && Math.random() > 0.6) {
                 const names = ["Rahul S.", "Ananya K.", "Vikram M.", "Sarah J.", "Kevin L.", "Jyothic H."];
                 const randomName = names[Math.floor(Math.random() * names.length)];
                 setLatestCheckIn(randomName);
@@ -98,7 +141,7 @@ export function RefreshingQRScanner() {
             clearInterval(interval);
             clearInterval(checkInInterval);
         };
-    }, [isVerified, location]); // Depend on location to start simulating check-ins
+    }, [sessionId, isVerified]);
 
     if (!mounted) return null;
 
@@ -142,30 +185,37 @@ export function RefreshingQRScanner() {
                 />
 
                 <div className="bg-white p-8 rounded-[40px] shadow-2xl border-[6px] border-white relative z-10 transition-transform group-hover:scale-[1.03]">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={token}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.2 }}
-                            transition={{ duration: 0.3, ease: "backOut" }}
-                            className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col items-center gap-4"
-                        >
-                            {locationError ? (
-                                <div className="h-[220px] w-[220px] flex flex-col items-center justify-center text-center space-y-2">
-                                    <AlertTriangle className="w-10 h-10 text-orange-500" />
-                                    <p className="text-xs font-bold text-slate-500">{locationError}</p>
-                                </div>
-                            ) : (
-                                <QRCodeSVG
-                                    value={token}
-                                    size={220}
-                                    level="H"
-                                    className="rounded-2xl"
-                                />
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
+                    {!sessionId && !locationError ? (
+                        <div className="h-[220px] w-[220px] flex flex-col items-center justify-center text-center space-y-4">
+                            <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                            <p className="text-xs font-bold text-slate-500">Initializing Secure Session...</p>
+                        </div>
+                    ) : (
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={token}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 1.2 }}
+                                transition={{ duration: 0.3, ease: "backOut" }}
+                                className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col items-center gap-4"
+                            >
+                                {locationError ? (
+                                    <div className="h-[220px] w-[220px] flex flex-col items-center justify-center text-center space-y-2">
+                                        <AlertTriangle className="w-10 h-10 text-orange-500" />
+                                        <p className="text-xs font-bold text-slate-500">{locationError}</p>
+                                    </div>
+                                ) : (
+                                    <QRCodeSVG
+                                        value={token}
+                                        size={220}
+                                        level="H"
+                                        className="rounded-2xl"
+                                    />
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    )}
 
                     {/* Check-in Popover */}
                     <AnimatePresence>
@@ -195,14 +245,25 @@ export function RefreshingQRScanner() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleVerify}
-                        disabled={isVerified}
-                        className="h-[84px] aspect-square rounded-[28px] bg-[#1E293B] hover:bg-black text-white flex flex-col items-center justify-center gap-2 shadow-xl shadow-slate-200"
-                    >
-                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">Verify Hub</span>
-                    </Button>
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={handleVerify}
+                            disabled={isVerified || !sessionId}
+                            className="h-[84px] p-4 rounded-[28px] bg-[#1E293B] hover:bg-black text-white flex flex-col items-center justify-center gap-2 shadow-xl shadow-slate-200"
+                        >
+                            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                            <span className="text-[8px] font-black uppercase tracking-widest">Verify Hub</span>
+                        </Button>
+
+                        <Button
+                            onClick={handleExport}
+                            disabled={!sessionId || isExporting}
+                            className="h-[84px] p-4 rounded-[28px] border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 flex flex-col items-center justify-center gap-2 shadow-xl transition-all"
+                        >
+                            {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5 text-blue-500" />}
+                            <span className="text-[8px] font-black uppercase tracking-widest">Excel CSV</span>
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Salt Progress Bar */}

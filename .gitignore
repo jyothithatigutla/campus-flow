@@ -34,3 +34,5 @@ apply-gradients.ps1
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

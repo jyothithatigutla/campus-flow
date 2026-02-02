@@ -1,33 +1,49 @@
-
 import { NextResponse } from 'next/server'
-// The client you created from the Server-Side Auth instructions
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/student/dashboard'
+    const next = searchParams.get('next') ?? '/'
 
     if (code) {
         const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-        if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-            const isLocalEnv = process.env.NODE_ENV === 'development'
+        if (!error && data.user) {
+            const user = data.user;
+            const role = user.user_metadata?.role || "visitor";
 
-            if (isLocalEnv) {
-                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
+            // Ensure profile exists for Google/OAuth users
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("id", user.id)
+                .single();
+
+            if (!profile) {
+                await supabase.from("profiles").insert({
+                    id: user.id,
+                    full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+                    email: user.email,
+                    role: role,
+                });
+
+                // If role is visitor, they don't need entry in students/faculty tables for now
             }
+
+            const isLocalEnv = process.env.NODE_ENV === 'development'
+            const forwardedHost = request.headers.get('x-forwarded-host')
+
+            let redirectUrl = origin;
+            if (!isLocalEnv && forwardedHost) redirectUrl = `https://${forwardedHost}`;
+
+            // Redirect based on role
+            if (role === 'admin') return NextResponse.redirect(`${redirectUrl}/faculty/admin/dashboard`);
+            if (role === 'faculty' || role === 'principal') return NextResponse.redirect(`${redirectUrl}/faculty/dashboard`);
+            return NextResponse.redirect(`${redirectUrl}/student/dashboard`);
         }
     }
 
-    // return the user to an error page with instructions
     return NextResponse.redirect(`${origin}/login?error=auth-code-error`)
 }

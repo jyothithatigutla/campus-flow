@@ -52,6 +52,7 @@ export function WalletBalanceDisplay() {
 
             if (result && result.success) {
                 toast.success("Money Added!", { description: `$${amountToAdd} added to wallet.` });
+                // Update balance safely
                 setBalance(result.new_balance ?? balance);
             } else {
                 toast.error("Top-up Failed", { description: result?.message || "Please try again." });

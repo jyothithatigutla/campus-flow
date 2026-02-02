@@ -12,12 +12,13 @@ import {
     FileText,
     CheckCircle2,
     Clock,
-    Download
+    Download,
+    Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { submitGradeAction } from "./actions";
+import { submitGradeAction, downloadSubmission } from "./actions";
 
 // --- Sub-Component: Grade Submission Form ---
 function GradeSubmissionForm({ submission, assignmentId, onSuccess }: any) {
@@ -31,15 +32,15 @@ function GradeSubmissionForm({ submission, assignmentId, onSuccess }: any) {
         try {
             const result = await submitGradeAction(
                 assignmentId,
-                submission.student, // Using Name as ID for demo. Real app should use submission.studentId
+                submission.student, // Note: In production, pass submission.studentId (UUID)
                 submission.student,
                 parseFloat(score),
-                100
+                100 // assuming total marks 100 for now. Real app should get this from assignment.total
             );
 
             if (result.success) {
                 toast.success(result.message);
-                onSuccess();
+                onSuccess(parseFloat(score));
             } else {
                 toast.error(result.message);
             }
@@ -52,7 +53,6 @@ function GradeSubmissionForm({ submission, assignmentId, onSuccess }: any) {
 
     return (
         <div className="space-y-4 font-sans">
-            {/* Header removed from here and moved to DialogHeader for accessibility */}
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                     <label htmlFor="grade-score" className="text-xs font-black uppercase text-slate-500 tracking-widest">Score (out of 100)</label>
@@ -69,7 +69,7 @@ function GradeSubmissionForm({ submission, assignmentId, onSuccess }: any) {
                     />
                 </div>
                 <Button type="submit" disabled={isLoading} className="w-full bg-[#0047AB] hover:bg-[#003087] font-black uppercase tracking-widest h-12 rounded-xl">
-                    {isLoading ? "Saving..." : "Submit Grade"}
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit Grade"}
                 </Button>
             </form>
         </div>
@@ -80,20 +80,60 @@ function GradeSubmissionForm({ submission, assignmentId, onSuccess }: any) {
 export default function GradingPage() {
     const router = useRouter();
     const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-    const assignments = [
-        { id: "ASG001", title: "Operating Systems - Assignment 3", course: "OS", dueDate: "Jan 30, 2026", submitted: 45, total: 60, status: "Active" },
-        { id: "ASG002", title: "Data Structures - Lab Report", course: "DS", dueDate: "Feb 5, 2026", submitted: 38, total: 60, status: "Active" },
-        { id: "ASG003", title: "Machine Learning - Project Proposal", course: "ML", dueDate: "Feb 10, 2026", submitted: 52, total: 60, status: "Active" },
-        { id: "ASG004", title: "Database Systems - Quiz 2", course: "DBMS", dueDate: "Jan 25, 2026", submitted: 60, total: 60, status: "Graded" },
-    ];
+    // Initial Assignments Data
+    const [assignments, setAssignments] = useState([
+        { id: "Operating Systems - Assignment 3", title: "Operating Systems - Assignment 3", course: "OS", dueDate: "Jan 30, 2026", submitted: 45, total: 60, status: "Active" },
+        { id: "Data Structures - Lab Report", title: "Data Structures - Lab Report", course: "DS", dueDate: "Feb 5, 2026", submitted: 38, total: 60, status: "Active" },
+        { id: "Machine Learning - Project Proposal", title: "Machine Learning - Project Proposal", course: "ML", dueDate: "Feb 10, 2026", submitted: 52, total: 60, status: "Active" },
+        { id: "Database Systems - Quiz 2", title: "Database Systems - Quiz 2", course: "DBMS", dueDate: "Jan 25, 2026", submitted: 60, total: 60, status: "Graded" },
+    ]);
 
-    const submissions = [
-        { id: "SUB001", student: "Jyothic H", rollNo: "AIDS23001", submittedOn: "Jan 28, 2026", grade: null, status: "Pending" },
-        { id: "SUB002", student: "Rahul Sharma", rollNo: "AIDS23002", submittedOn: "Jan 27, 2026", grade: null, status: "Pending" },
-        { id: "SUB003", student: "Sarah Johnson", rollNo: "AIDS23003", submittedOn: "Jan 28, 2026", grade: null, status: "Pending" },
+    // Initial Submissions Data
+    // Note: In a real app, this would be fetched from DB when an assignment is selected
+    const [submissions, setSubmissions] = useState([
+        { id: "SUB001", student: "Jyothic H", rollNo: "AIDS23001", submittedOn: "Jan 28, 2026", grade: null as number | null, status: "Pending" },
+        { id: "SUB002", student: "Rahul Sharma", rollNo: "AIDS23002", submittedOn: "Jan 27, 2026", grade: null as number | null, status: "Pending" },
+        { id: "SUB003", student: "Sarah Johnson", rollNo: "AIDS23003", submittedOn: "Jan 28, 2026", grade: null as number | null, status: "Pending" },
         { id: "SUB004", student: "Kevin Lee", rollNo: "AIDS23004", submittedOn: "Jan 26, 2026", grade: 85, status: "Graded" },
-    ];
+    ]);
+
+    const handleDownload = async (submission: any) => {
+        setDownloadingId(submission.id);
+        try {
+            const result = await downloadSubmission(submission.student, selectedAssignment || "Unknown Assignment");
+            if (result.success) {
+                toast.success(result.message);
+                // In real app: window.open(result.url, '_blank');
+            }
+        } catch (error) {
+            toast.error("Download failed");
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    const handleGradeSuccess = (score: number, submissionId: string) => {
+        // 1. Update the local submissions state
+        setSubmissions(prev => prev.map(sub =>
+            sub.id === submissionId
+                ? { ...sub, grade: score, status: "Graded" }
+                : sub
+        ));
+
+        // 2. Update the parent assignments count (Simulating "Approved/Submitted" increment)
+        if (selectedAssignment) {
+            setAssignments(prev => prev.map(asg =>
+                asg.id === selectedAssignment
+                    ? { ...asg, submitted: asg.submitted + 1 }
+                    : asg
+            ));
+        }
+
+        // 3. Refresh server data
+        router.refresh();
+    };
 
     return (
         <DashboardLayout>
@@ -162,12 +202,17 @@ export default function GradingPage() {
                         {selectedAssignment ? (
                             <Card className="border-0 shadow-sm bg-white dark:bg-slate-900 rounded-[40px] overflow-hidden">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 p-8">
-                                    <CardTitle className="text-[#1E293B] dark:text-white flex items-center gap-4 font-black text-2xl italic tracking-tight">
-                                        <div className="w-10 h-10 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-                                            <FileText className="w-5 h-5 text-white" />
-                                        </div>
-                                        Student Submissions
-                                    </CardTitle>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-[#1E293B] dark:text-white flex items-center gap-4 font-black text-2xl italic tracking-tight">
+                                            <div className="w-10 h-10 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                                                <FileText className="w-5 h-5 text-white" />
+                                            </div>
+                                            Student Submissions
+                                        </CardTitle>
+                                        <Badge className="bg-slate-100 text-slate-600 font-bold border-none px-3 py-1 rounded-lg">
+                                            {submissions.length} Total
+                                        </Badge>
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-4">
                                     {submissions.map((submission) => (
@@ -189,15 +234,27 @@ export default function GradingPage() {
                                                 )}
                                             </div>
                                             <div className="flex gap-3">
-                                                <Button className="flex-1 bg-blue-600 hover:bg-blue-700 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white">
-                                                    <Download className="w-4 h-4 mr-2" />
-                                                    Download
+                                                <Button
+                                                    onClick={() => handleDownload(submission)}
+                                                    disabled={downloadingId === submission.id}
+                                                    className="flex-1 bg-blue-600 hover:bg-blue-700 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white"
+                                                >
+                                                    {downloadingId === submission.id ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Downloading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Download className="w-4 h-4 mr-2" /> Download
+                                                        </>
+                                                    )}
                                                 </Button>
                                                 {!submission.grade && (
                                                     <Dialog>
                                                         <DialogTrigger asChild>
                                                             <Button
                                                                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white"
+                                                            // onClick to open dialog is automatic via Trigger
                                                             >
                                                                 <CheckCircle2 className="w-4 h-4 mr-2" />
                                                                 Grade Now
@@ -213,10 +270,7 @@ export default function GradingPage() {
                                                             <GradeSubmissionForm
                                                                 submission={submission}
                                                                 assignmentId={selectedAssignment}
-                                                                onSuccess={() => {
-                                                                    toast.success("Grade Saved");
-                                                                    router.refresh();
-                                                                }}
+                                                                onSuccess={(score: number) => handleGradeSuccess(score, submission.id)}
                                                             />
                                                         </DialogContent>
                                                     </Dialog>

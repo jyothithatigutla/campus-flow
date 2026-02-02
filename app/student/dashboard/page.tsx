@@ -34,6 +34,7 @@ import { ExamCard } from "@/components/student/exam-card";
 import { registerForEvent } from "../actions";
 import { useOptimistic, useTransition, forwardRef } from "react";
 import { WalletBalanceDisplay } from "@/components/student/wallet-balance";
+import { RecentGrades } from "@/components/student/recent-grades";
 
 
 
@@ -221,6 +222,9 @@ export default function StudentDashboard() {
                                             <WalletBalanceDisplay />
                                         </div>
                                     </Card>
+
+                                    {/* New Recent Grades Widget */}
+                                    <RecentGrades />
                                 </div>
 
                                 {/* Schedule Cards (Restored) */}
@@ -473,8 +477,8 @@ export default function StudentDashboard() {
 
                     </div>
                 </div>
-            </div>
-        </DashboardLayout>
+            </div >
+        </DashboardLayout >
     );
 }
 
